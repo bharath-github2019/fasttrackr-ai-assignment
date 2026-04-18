@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Household {
+  id               String             @id @default(cuid())
+  name             String
+  annualIncome     Float?
+  netWorth         Float?
+  liquidNetWorth   Float?
+  expenseRange     String?
+  taxBracket       String?
+  riskTolerance    String?
+  timeHorizonYears Int?
+  notes            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  members          Member[]
+  accounts         FinancialAccount[]
+  banks            BankDetail[]
+  insights         InsightSnapshot[]
+
+  @@index([name])
+}
+
+model Member {
+  id            String    @id @default(cuid())
+  householdId   String
+  fullName      String
+  dateOfBirth   DateTime?
+  email         String?
+  phone         String?
+  relationship  String?
+  addressLine   String?
+  city          String?
+  state         String?
+  postalCode    String?
+  country       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@index([householdId])
+  @@index([fullName])
+}
+
+model FinancialAccount {
+  id                    String    @id @default(cuid())
+  householdId           String
+  accountNumberMasked   String?
+  custodian             String?
+  accountType           String?
+  accountValue          Float?
+  ownershipDistribution String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  household             Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@index([householdId])
+}
+
+model BankDetail {
+  id                  String    @id @default(cuid())
+  householdId         String
+  bankName            String?
+  accountNumberMasked String?
+  routingNumberMasked String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  household           Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@index([householdId])
+}
+
+model InsightSnapshot {
+  id           String    @id @default(cuid())
+  householdId  String
+  source       String
+  summary      String?
+  rawJson      String?
+  createdAt    DateTime  @default(now())
+  household    Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@index([householdId, createdAt])
+}
